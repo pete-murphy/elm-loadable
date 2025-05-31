@@ -88,9 +88,9 @@ fail error =
 
 {-| Convert a `Result` into a `Loadable`
 
-    fromResult (Ok a) == succeed a
+    fromResult (Ok 1) --> succeed 1
 
-    fromResult (Err e) == fail e
+    fromResult (Err "error") --> fail "error"
 
 -}
 fromResult : Result e a -> Loadable e a
@@ -105,9 +105,9 @@ fromResult result =
 
 {-| Convert a `Maybe` into a `Loadable`
 
-    fromMaybe (Just a) == succeed a
+    fromMaybe (Just 1) --> succeed 1
 
-    fromMaybe Nothing == notAsked
+    fromMaybe Nothing --> notAsked
 
 -}
 fromMaybe : Maybe a -> Loadable e a
@@ -124,13 +124,6 @@ fromMaybe maybe =
 -- COMBINATORS
 
 
-{-| Map the loading state of a `Loadable`
-
-    mapLoading (\_ -> True) loading == loading
-
-    mapLoading (\_ -> False) loading == notAsked
-
--}
 mapLoading : (Bool -> Bool) -> Loadable e a -> Loadable e a
 mapLoading f (Loadable internals) =
     Loadable { internals | isLoading = f internals.isLoading }
@@ -138,9 +131,9 @@ mapLoading f (Loadable internals) =
 
 {-| Set loading to `True`
 
-    toLoading loading == loading
+    toLoading loading --> loading
 
-    toLoading notAsked == notAsked
+    toLoading notAsked --> loading
 
 -}
 toLoading : Loadable e a -> Loadable e a
@@ -150,9 +143,9 @@ toLoading =
 
 {-| Set loading to `False`
 
-    toNotLoading loading == notAsked
+    toNotLoading loading --> notAsked
 
-    toNotLoading notAsked == notAsked
+    toNotLoading notAsked --> notAsked
 
 -}
 toNotLoading : Loadable e a -> Loadable e a
@@ -162,9 +155,9 @@ toNotLoading =
 
 {-| Map the value of a `Loadable`
 
-    map (\a -> a + 1) (succeed 1) == succeed 2
+    map (\a -> a + 1) (succeed 1) --> succeed 2
 
-    map (\_ -> 0) (fail "error") == fail "error"
+    map (\_ -> 0) (fail "error") --> fail "error"
 
 -}
 map : (a -> b) -> Loadable e a -> Loadable e b
@@ -217,7 +210,7 @@ andThen f (Loadable data) =
 
 {-| Apply a function to the value of a `Loadable`
 
-    succeed (\a -> a + 1) |> andMap (succeed 1) == succeed 2
+    succeed (\a -> a + 1) |> andMap (succeed 1) --> succeed 2
 
 -}
 andMap : Loadable e a -> Loadable e (a -> b) -> Loadable e b
@@ -227,20 +220,18 @@ andMap ma mf =
 
 {-| Combine a list of `Loadable` values
 
-    combineMap (\a -> succeed a) [ 1, 2, 3 ] == succeed [ 1, 2, 3 ]
+    combineMap (\a -> succeed a) [ 1, 2, 3 ] --> succeed [ 1, 2, 3 ]
 
     let
         odd n =
             modBy 2 n == 1
-
         failIfOdd n =
             if odd n then
                 fail (String.fromInt n)
-
             else
                 succeed n
     in
-    combineMap failIfOdd [ 1, 2, 3 ] == fail "1"
+    combineMap failIfOdd [ 1, 2, 3 ] --> fail "1"
 
 -}
 combineMap : (a -> Loadable e b) -> List a -> Loadable e (List b)
@@ -258,11 +249,11 @@ the examples.
 
     succeed (\a -> a ++ "b")
         |> andMapWith (++) (succeed "a")
-        == succeed "ab"
+        --> succeed "ab"
 
     fail "a"
         |> andMapWith (++) (fail "b")
-        == fail "ab"
+        --> fail "ab"
 
 -}
 andMapWith : (e -> e -> e) -> Loadable e a -> Loadable e (a -> b) -> Loadable e b
@@ -282,15 +273,13 @@ andMapWith onError ma mf =
     let
         odd n =
             modBy 2 n == 1
-
         failIfOdd n =
             if odd n then
                 fail (String.fromInt n)
-
             else
                 succeed n
     in
-    combineMapWith (++) failIfOdd [ 1, 2, 3 ] == fail "13"
+    combineMapWith (++) failIfOdd [ 1, 2, 3 ] --> fail "13"
 
 -}
 combineMapWith : (e -> e -> e) -> (a -> Loadable e b) -> List a -> Loadable e (List b)
@@ -306,9 +295,9 @@ combineMapWith onError f =
 
 {-| Get the default value if the `Loadable` is not loading
 
-    withDefault 0 (succeed 1) == 1
+    withDefault 0 (succeed 1) --> 1
 
-    withDefault 0 notAsked == 0
+    withDefault 0 notAsked --> 0
 
 -}
 withDefault : a -> Loadable e a -> a
@@ -323,9 +312,9 @@ withDefault default (Loadable internals) =
 
 {-| Convert a `Loadable` to a `Maybe`
 
-    toMaybe (succeed 1) == Just 1
+    toMaybe (succeed 1) --> Just 1
 
-    toMaybe notAsked == Nothing
+    toMaybe notAsked --> Nothing
 
 -}
 toMaybe : Loadable e a -> Maybe a
@@ -340,9 +329,9 @@ toMaybe (Loadable internals) =
 
 {-| Get the value of a `Loadable`
 
-    value (succeed 1) == Success 1
+    value (succeed 1) --> Success 1
 
-    value notAsked == Empty
+    value notAsked --> Empty
 
 -}
 value : Loadable e a -> Value e a
@@ -352,9 +341,9 @@ value (Loadable internals) =
 
 {-| Check if the `Loadable` is loading
 
-    isLoading loading == True
+    isLoading loading --> True
 
-    isLoading notAsked == False
+    isLoading notAsked --> False
 
 -}
 isLoading : Loadable e a -> Bool
@@ -376,9 +365,9 @@ unwrap (Loadable data) =
 
 {-| Convert a `Loadable` to a `Maybe` of the error type
 
-    toMaybeError (fail "error") == Just "error"
+    toMaybeError (fail "error") --> Just "error"
 
-    toMaybeError notAsked == Nothing
+    toMaybeError notAsked --> Nothing
 
 -}
 toMaybeError : Loadable e a -> Maybe e
