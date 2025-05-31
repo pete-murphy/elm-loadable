@@ -30,6 +30,9 @@ suite =
                         , Loadable.succeed
                         , \_ -> Loadable.loading
                         , \_ -> Loadable.notAsked
+                        , \_ -> Loadable.succeed 2 |> Loadable.toLoading
+                        , \_ -> Loadable.fail "oop" |> Loadable.toLoading
+                        , Loadable.succeed >> Loadable.toLoading
                         ]
               in
               Test.fuzz2 fuzzF Fuzz.int "left identity" <|
@@ -43,6 +46,8 @@ suite =
                         , Loadable.fail "oop"
                         , Loadable.loading
                         , Loadable.notAsked
+                        , Loadable.succeed 2 |> Loadable.toLoading
+                        , Loadable.fail "ah" |> Loadable.toLoading
                         ]
               in
               Test.fuzz fuzzMa "right identity" <|
@@ -57,6 +62,9 @@ suite =
                         , Loadable.succeed
                         , \_ -> Loadable.loading
                         , \_ -> Loadable.notAsked
+                        , \_ -> Loadable.succeed 2 |> Loadable.toLoading
+                        , \_ -> Loadable.fail "oop" |> Loadable.toLoading
+                        , Loadable.succeed >> Loadable.toLoading
                         ]
 
                 fuzzMa =
@@ -65,6 +73,8 @@ suite =
                         , Loadable.fail "oop"
                         , Loadable.loading
                         , Loadable.notAsked
+                        , Loadable.succeed 2 |> Loadable.toLoading
+                        , Loadable.fail "ah" |> Loadable.toLoading
                         ]
               in
               Test.fuzz3 fuzzF fuzzF fuzzMa "associativity" <|
@@ -94,10 +104,12 @@ suite =
                         , Loadable.fail "oop"
                         , Loadable.loading
                         , Loadable.notAsked
+                        , Loadable.succeed 2 |> Loadable.toLoading
+                        , Loadable.fail "ah" |> Loadable.toLoading
                         ]
               in
-              Test.fuzz2 fuzzMa fuzzMa "andMapWith always is same as andMap" <|
-                \ma mb ->
+              Test.fuzzWith { runs = 1000, distribution = Test.noDistribution } (Fuzz.pair fuzzMa fuzzMa) "andMapWith always is same as andMap" <|
+                \( ma, mb ) ->
                     Expect.equal
                         (Loadable.succeed (+)
                             |> Loadable.andMapWith Basics.always ma
@@ -107,5 +119,21 @@ suite =
                             |> Loadable.andMap ma
                             |> Loadable.andMap mb
                         )
+            , Test.test "combineMapWith" <|
+                \_ ->
+                    let
+                        odd n =
+                            modBy 2 n == 1
+
+                        failIfOdd n =
+                            if odd n then
+                                Loadable.fail (String.fromInt n)
+
+                            else
+                                Loadable.succeed n
+                    in
+                    Expect.equal
+                        (Loadable.combineMapWith (++) failIfOdd [ 1, 2, 3 ])
+                        (Loadable.fail "13")
             ]
         ]

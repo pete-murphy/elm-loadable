@@ -267,35 +267,30 @@ the examples.
 -}
 andMapWith : (e -> e -> e) -> Loadable e a -> Loadable e (a -> b) -> Loadable e b
 andMapWith onError ma mf =
-    let
-        v =
-            case ( value mf, value ma ) of
-                ( Success f, Success a ) ->
-                    Success (f a)
+    case ( value mf, value ma ) of
+        ( Failure e1, Failure e2 ) ->
+            Loadable { value = Failure (onError e1 e2), isLoading = isLoading mf }
 
-                ( Failure e1, Failure e2 ) ->
-                    Failure (onError e1 e2)
-
-                ( Failure e, Success _ ) ->
-                    Failure e
-
-                ( Success _, Failure e ) ->
-                    Failure e
-
-                ( Empty, _ ) ->
-                    Empty
-
-                ( _, Empty ) ->
-                    Empty
-    in
-    Loadable { value = v, isLoading = isLoading ma || isLoading mf }
+        _ ->
+            andMap ma mf
 
 
 {-| Combine a list of `Loadable` values with a function that combines the errors
 
-    combineMapWith (++) (succeed [ "a" ]) (succeed [ "b" ]) == succeed [ "ab" ]
+    combineMapWith (\x _ -> x) == combineMap
 
-    combineMapWith (++) (fail "a") (fail "b") == fail "ab"
+    let
+        odd n =
+            modBy 2 n == 1
+
+        failIfOdd n =
+            if odd n then
+                fail (String.fromInt n)
+
+            else
+                succeed n
+    in
+    combineMapWith (++) failIfOdd [ 1, 2, 3 ] == fail "13"
 
 -}
 combineMapWith : (e -> e -> e) -> (a -> Loadable e b) -> List a -> Loadable e (List b)
