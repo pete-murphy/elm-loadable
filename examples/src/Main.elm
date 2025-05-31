@@ -81,7 +81,6 @@ viewTodo : Todo -> Html Msg
 viewTodo todo =
     Html.li []
         [ Html.h2 [] [ Html.text todo.title ]
-        , Html.p [] [ Html.text todo.body ]
         , Html.p [] [ Html.text ("User ID: " ++ String.fromInt todo.userId) ]
         ]
 
