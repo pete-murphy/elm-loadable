@@ -2,8 +2,6 @@
 
 A data type for tracking loadable (and reloadable) data, like data fetched from a backend server.
 
-See an [example in action on Ellie]({{YOUR LINK HERE}}). -->
-
 ## Installation
 
 ```
