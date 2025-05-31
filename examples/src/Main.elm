@@ -10,20 +10,18 @@ import Loadable exposing (Loadable)
 
 
 type alias Todo =
-    { userId : Int
-    , id : Int
+    { id : Int
     , title : String
-    , body : String
+    , completed : Bool
     }
 
 
 decoderTodo : Decoder Todo
 decoderTodo =
-    Json.Decode.map4 Todo
-        (Json.Decode.field "userId" Json.Decode.int)
+    Json.Decode.map3 Todo
         (Json.Decode.field "id" Json.Decode.int)
         (Json.Decode.field "title" Json.Decode.string)
-        (Json.Decode.field "body" Json.Decode.string)
+        (Json.Decode.field "completed" Json.Decode.bool)
 
 
 fetchTodos : Cmd Msg
@@ -38,9 +36,11 @@ type alias Model =
     { todos : Loadable Http.Error (List Todo) }
 
 
-initialModel : Model
-initialModel =
-    { todos = Loadable.notAsked }
+init : ( Model, Cmd Msg )
+init =
+    ( { todos = Loadable.loading }
+    , fetchTodos
+    )
 
 
 type Msg
@@ -60,9 +60,15 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.div []
+    Html.main_ []
         [ Html.h1 [] [ Html.text "Todos" ]
-        , Html.button [ Events.onClick UserClickedFetchTodos ] [ Html.text "Fetch Todos" ]
+        , Html.button [ Events.onClick UserClickedFetchTodos ]
+            [ if Loadable.isLoading model.todos then
+                Html.text "Loading..."
+
+              else
+                Html.text "Fetch Todos"
+            ]
         , Html.div [ Attributes.classList [ ( "loading", Loadable.isLoading model.todos ) ] ]
             [ case Loadable.value model.todos of
                 Loadable.Empty ->
@@ -80,15 +86,22 @@ view model =
 viewTodo : Todo -> Html Msg
 viewTodo todo =
     Html.li []
-        [ Html.h2 [] [ Html.text todo.title ]
-        , Html.p [] [ Html.text ("User ID: " ++ String.fromInt todo.userId) ]
+        [ Html.h2 []
+            [ Html.text todo.title ]
+        , Html.span [ Attributes.class "status" ]
+            [ if todo.completed then
+                Html.text "Completed"
+
+              else
+                Html.text "Not completed"
+            ]
         ]
 
 
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \_ -> ( initialModel, fetchTodos )
+        { init = \_ -> init
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none

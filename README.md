@@ -40,11 +40,15 @@ case Loadable.value model of
         -- ...
 ```
 
-with the option of matching on `Loadable.isLoading model` in any of the three branches as needed.
+with the option of matching on `Loadable.isLoading model` in any of the three branches as needed. See [usage](#usage).
 
 ## Overview
 
-### Example usage
+### Usage
+
+#### `init`
+
+Typically you will use `Loadable.notAsked` or `Loadable.loading` in your `init` function.
 
 ```elm
 type alias Model =
@@ -53,9 +57,15 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ({ todos = Loadable.notAsked }, fetchTodos )
+    ({ todos = Loadable.loading }, fetchTodos )
 
+```
 
+#### `update`
+
+In `update`, you can transition `Loadable` to loading using `Loadable.toLoading`.
+
+```elm
 type Msg
     = UserClickedFetchTodos
     | BackendRespondedWithTodos (Result Http.Error (List Todo))
@@ -70,7 +80,13 @@ update msg model =
         BackendRespondedWithTodos result ->
             ( { model | todos = Loadable.fromResult result }, Cmd.none )
 
+```
 
+#### `view`
+
+In `view` you can match on empty, success, and failure cases with `Loadable.value`, and separately match on `Loadable.isLoading` as needed.
+
+```elm
 view : Model -> Html Msg
 view model =
     Html.div []
@@ -90,4 +106,4 @@ view model =
         ]
 ```
 
-[See this example on Ellie](https://ellie-app.com/vBNPgbSygkVa1)
+[See this example on Ellie](https://ellie-app.com/vBQPV95Fbdba1)

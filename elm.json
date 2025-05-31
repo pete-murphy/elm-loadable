@@ -3,7 +3,7 @@
     "name": "pete-murphy/elm-loadable",
     "summary": "Loadable and reloadable data",
     "license": "MIT",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "exposed-modules": [
         "Loadable"
     ],

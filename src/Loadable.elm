@@ -292,7 +292,7 @@ combineMapWith onError f =
 -- DESTRUCTORS
 
 
-{-| Get the default value if the `Loadable` is not loading
+{-| Get the success value out of `Loadable` or a fallback if it's not the success case
 
     withDefault 0 (succeed 1) --> 1
 
