@@ -1,6 +1,6 @@
 {
     "type": "package",
-    "name": "pete-murphy/loadable",
+    "name": "pete-murphy/elm-loadable",
     "summary": "Loadable and reloadable data",
     "license": "MIT",
     "version": "0.0.1",

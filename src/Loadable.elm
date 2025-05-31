@@ -1,9 +1,8 @@
 module Loadable exposing
     ( Loadable, Value(..)
     , notAsked, loading, succeed, fail
-    , map, andMap, andThen, combineMap, fromMaybe, fromResult, toLoading, toNotLoading
+    , map, andMap, andThen, combineMap, fromMaybe, fromResult, toLoading, toNotLoading, andMapWith, combineMapWith
     , withDefault, toMaybe, toMaybeError, isLoading, unwrap, value
-    , andMapWith, combineMapWith
     )
 
 {-| Loadable and reloadable data
@@ -21,7 +20,7 @@ module Loadable exposing
 
 ## Combinators
 
-@docs map, andMap, andThen, combineMap, fromMaybe, fromResult, toLoading, toNotLoading
+@docs map, andMap, andThen, combineMap, fromMaybe, fromResult, toLoading, toNotLoading, andMapWith, combineMapWith
 
 
 ## Destructors
