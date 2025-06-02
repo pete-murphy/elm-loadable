@@ -1,6 +1,5 @@
 {
   "name": "elm-loadable",
-  "version": "0.0.1",
   "description": "Loadable and reloadable data",
   "devDependencies": {
     "elm-review": "^2.13.2",
