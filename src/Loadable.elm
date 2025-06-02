@@ -5,7 +5,8 @@ module Loadable exposing
     , withDefault, toMaybe, toMaybeError, isLoading, unwrap, value
     )
 
-{-| Loadable and reloadable data
+{-| Loadable and reloadable data. `Loadable` is an extension of `RemoteData` to
+include a loading state in the success and failure cases.
 
 
 ## Types
@@ -180,13 +181,15 @@ map f (Loadable internals) =
 ExceptT e (MaybeT (Writer Any))
 ```
 
-    andThen (\a -> map f a) (succeed a) == map f (succeed a)
+    succeed 1 |> andThen (\a -> succeed (a + 100)) --> succeed 101
 
-    andThen (\_ -> fail "error") (succeed a) == fail "error"
+    succeed 1 |> andThen (\_ -> fail "error") --> fail "error"
 
-    andThen (\_ -> loading) (fail "error") == loading
+    fail "error" |> andThen (\_ -> loading) --> fail "error"
 
-    andThen (\_ -> notAsked) notAsked == notAsked
+    notAsked |> andThen (\_ -> loading) --> notAsked
+
+    loading |> andThen (\_ -> notAsked) --> loading
 
 -}
 andThen : (a -> Loadable e b) -> Loadable e a -> Loadable e b
@@ -203,7 +206,6 @@ andThen f (Loadable data) =
             Loadable { value = Failure err, isLoading = data.isLoading }
 
         Empty ->
-            -- Int.is
             Loadable { value = Empty, isLoading = data.isLoading }
 
 
@@ -219,7 +221,8 @@ andMap ma mf =
 
 {-| Combine a list of `Loadable` values
 
-    combineMap (\a -> succeed a) [ 1, 2, 3 ] --> succeed [ 1, 2, 3 ]
+    combineMap succeed [ 1, 2, 3 ]
+    --> succeed [ 1, 2, 3 ]
 
     let
         odd n =
@@ -230,7 +233,8 @@ andMap ma mf =
             else
                 succeed n
     in
-    combineMap failIfOdd [ 1, 2, 3 ] --> fail "1"
+    combineMap failIfOdd [ 1, 2, 3 ]
+    --> fail "1"
 
 -}
 combineMap : (a -> Loadable e b) -> List a -> Loadable e (List b)
@@ -352,12 +356,12 @@ isLoading (Loadable internals) =
 
 {-| Unwrap a `Loadable`
 
-    unwrap (succeed 1) == { value = Success 1, isLoading = False }
+    unwrap (succeed 1) --> { value = Success 1, isLoading = False }
 
-    unwrap notAsked == { value = Empty, isLoading = False }
+    unwrap notAsked --> { value = Empty, isLoading = False }
 
 -}
-unwrap : Loadable e a -> Internals e a
+unwrap : Loadable e a -> { value : Value e a, isLoading : Bool }
 unwrap (Loadable data) =
     data
 
